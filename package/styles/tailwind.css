@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  p{
+    @apply text-lg text-gray-700 font-normal h-7 inline;
+  }
+  .custom-class {
+    @apply bg-light-50;
+  }
+
+  .btn {
+    @apply text-white bg-sky-500 inline-block px-5 py-2 m-2 rounded-md hover:bg-sky-400 transition-all
+  }
+
+  .btn-icon {
+    @apply text-gray-700 bg-transparent inline-block p-1 m-2 rounded-md hover:bg-gray-100 transition-all
+  }
+  .editor-title {
+    @apply text-5xl text-gray-900 font-semibold
+  }
+  .editor-h1 {
+    @apply text-4xl text-gray-800 font-semibold block h-14 tracking-wider
+  }
+
+  .editor-h2 {
+    @apply text-3xl text-gray-800 font-semibold block h-12 tracking-wider
+  }
+
+  .editor-h3 {
+    @apply text-2xl text-gray-800 font-semibold block h-10 tracking-wider
+  }
+
+  .editor-text {
+    @apply text-lg text-gray-700 font-normal h-7 inline;
+  }
+
+  .editor-row {
+    @apply py-2 w-full hover:bg-slate-50 transition-all px-2;
+  }
+  .edit-active::after{
+    content:"|";
+  }
+  #editor-changer{
+    @apply 
+    align-middle
+    transition 
+    duration-150 
+    h-10  
+    text-sky-400 
+    font-semibold 
+    bg-transparent 
+    inline-block 
+    p-2 
+    rounded-md  
+    hover:bg-gray-100 ;
+  }
+}
