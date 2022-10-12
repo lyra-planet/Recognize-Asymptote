@@ -15,36 +15,41 @@ interface I_Selection {
 
 let textsState: Array<textLinkNode> = [
   {
+    label: "p",
     type: "textNode",
-    id: uuid(),
+    id: "textnode-" + uuid(),
     marks: ["editor-h1"],
     state: "new",
     content: "我他妈写不来1",
   },
   {
+    label: "p",
     type: "textNode",
-    id: uuid(),
+    id: "textnode-" + uuid(),
     marks: ["editor-h2"],
     state: "new",
     content: "我他妈写不来2",
   },
   {
+    label: "p",
     type: "textNode",
-    id: uuid(),
+    id: "textnode-" + uuid(),
     marks: ["editor-h3"],
     state: "new",
     content: "我他妈写不来3",
   },
   {
+    label: "p",
     type: "textNode",
-    id: uuid(),
+    id: "textnode-" + uuid(),
     marks: ["editor-text"],
     state: "new",
     content: "我他妈写不来4",
   },
   {
+    label: "p",
     type: "textNode",
-    id: uuid(),
+    id: "textnode-" + uuid(),
     marks: ["editor-text"],
     state: "new",
     content: "我他妈写不来5",
@@ -58,7 +63,7 @@ export const changeTextState = (
 ) => {
   console.log(controllState);
   const { end, start, startNodeDom, endNodeDom } = selection;
-  if (!end || !start || !startNodeDom || !endNodeDom) {
+  if (!startNodeDom || !endNodeDom) {
     return;
   }
   //获取虚拟Dom
@@ -95,50 +100,110 @@ export const changeTextState = (
   endNode.content = endNodeContent;
   startNode.state = "change";
   endNode.state = "new";
-  endNode.id = uuid();
+  endNode.id = "linknode-" + uuid();
   if (controllState === "insert") {
     let newNode = {
+      label: "p",
       type: "textNode",
-      id: uuid(),
+      id: "linknode-" + uuid(),
       marks: ["editor-text", "text-purple-600"],
       state: "new",
       content: "我插进来了欧",
     } as textLinkNode;
     //替换选中的字符
-    if (selectedNodes.length == 1) {
-      textsState.splice(startNodeIndex, 1, startNode, newNode, endNode);
-    }
-    if (selectedNodes.length > 1) {
-      textsState.splice(startNodeIndex, 1, startNode, newNode, endNode);
-    }
+    textsState.splice(startNodeIndex, 1, startNode, newNode, endNode);
   } else {
-    //键入单个字符
-    if (selectedNodes.length == 1) {
-      startNode.content += args[0];
-      startNode.content += endNode.content;
-      textsState.splice(startNodeIndex, 1, startNode);
-    } else if (selectedNodes.length > 1) {
-      startNode.content += args[0];
-      startNode.content += endNode.content;
-      textsState.splice(startNodeIndex, 1, startNode);
+    if (args.length !== 0) {
+      switch (args[0].length) {
+        case 1:
+          //键入单个字符
+          enterSingleCharacter(
+            selectedNodes,
+            startNode,
+            endNode,
+            textsState,
+            startNodeIndex,
+            args
+          );
+          break;
+        default:
+          enterSpecailCharacter(
+            selectedNodes,
+            startNode,
+            endNode,
+            textsState,
+            startNodeIndex,
+            args
+          );
+          break;
+      }
     }
   }
+
+  //
   textNodeLinkListVDomToDom(textsState);
 
+  //
   textsState = textsState.filter(
     (textLinkNode) => textLinkNode.state === "static"
   );
 };
 
+const enterSingleCharacter = (
+  selectedNodes: any[],
+  startNode: textLinkNode,
+  endNode: textLinkNode,
+  textsState: Array<textLinkNode>,
+  startNodeIndex: number,
+  args: any[]
+) => {
+  if (selectedNodes.length == 1) {
+    startNode.content += args[0];
+    startNode.content += endNode.content;
+    textsState.splice(startNodeIndex, 1, startNode);
+  } else if (selectedNodes.length > 1) {
+    startNode.content += args[0];
+    startNode.content += endNode.content;
+    textsState.splice(startNodeIndex, 1, startNode);
+  }
+};
+const enterSpecailCharacter = (
+  selectedNodes: any[],
+  startNode: textLinkNode,
+  endNode: textLinkNode,
+  textsState: Array<textLinkNode>,
+  startNodeIndex: number,
+  args: any[]
+) => {
+  switch (args[0]) {
+    case "Enter":
+      let newNode = {
+        label: "br",
+        type: "br",
+        id: "linknode-" + uuid(),
+        marks: [],
+        state: "new",
+        content: "",
+      } as textLinkNode;
+      if (endNode.content.length !== 0) {
+        textsState.splice(startNodeIndex, 1, startNode, newNode, endNode);
+      } else {
+        textsState.splice(startNodeIndex, 1, startNode, newNode);
+      }
+      break;
+    case "Backspace":
+      break;
+    default:
+      break;
+  }
+};
 export const initTextState = () => {
   console.log("Create");
   const contentDom = document.querySelector(".content");
   let mountElement = document.createElement("div");
-  mountElement.classList.add('editor-content')
+  mountElement.classList.add("editor-content");
   contentDom?.appendChild(mountElement);
   if (mountElement) {
-    if (contentDom?.hasChildNodes()) {
-    }
     textNodeLinkList(textsState);
   }
 };

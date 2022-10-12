@@ -26,15 +26,15 @@
     @apply text-5xl text-gray-900 font-semibold
   }
   .editor-h1 {
-    @apply text-4xl text-gray-800 font-semibold block h-14 tracking-wider
+    @apply text-4xl text-gray-800 font-semibold  h-14 tracking-wider inline-block
   }
 
   .editor-h2 {
-    @apply text-3xl text-gray-800 font-semibold block h-12 tracking-wider
+    @apply text-3xl text-gray-800 font-semibold  h-12 tracking-wider inline-block
   }
 
   .editor-h3 {
-    @apply text-2xl text-gray-800 font-semibold block h-10 tracking-wider
+    @apply text-2xl text-gray-800 font-semibold  h-10 tracking-wider inline-block
   }
 
   .editor-text {

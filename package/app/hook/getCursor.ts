@@ -19,6 +19,7 @@ export const getCursor = () => {
   const start = sel.anchorOffset;
   const startNodeDom = sel.anchorNode;
   const endNodeDom = sel.focusNode;
+  console.log(sel)
   return {
     end,
     start,
