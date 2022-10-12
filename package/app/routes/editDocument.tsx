@@ -1,7 +1,6 @@
-import { MetaFunction } from '@remix-run/node';
+import type { MetaFunction } from '@remix-run/node';
 import { useEffect, useRef, useState } from 'react';
 import Editor from '~/components/Editor'
-import {v4 as uuid} from 'uuid'
 export const meta: MetaFunction = () => ({
 
   charset: "utf-8", // <meta charset="utf-8">
@@ -9,24 +8,12 @@ export const meta: MetaFunction = () => ({
   description: "Delicious shakes",
   });
 
-const editDocument = () => {
+const EditDocument = () => {
   const [editorChangerPosition,setEditorChangerPosition] = useState(0)
   const focusRow = useRef(0)
  
   useEffect(()=>{
     document.onkeydown=(e)=>{
-      // if(focusRow.current){
-      //   console.log(focusRow.current)
-      //   let copyTextsList = textsList
-      //   switch (e.key){
-      //     case "Backspace": 
-      //     copyTextsList[focusRow.current-1].text = copyTextsList[focusRow.current-1].text.slice(0, -1) 
-      //     break
-      //     default:
-      //     copyTextsList[focusRow.current-1].text += e.key
-      //   }  
-      //   setTextList([...copyTextsList])
-      // }
     }
     const editorDivs = document.querySelectorAll(".editor>div") 
     const editorChanger= document.getElementById("editor-changer") as HTMLElement
@@ -69,4 +56,4 @@ const editDocument = () => {
 }
 
 
-export default editDocument
+export default EditDocument

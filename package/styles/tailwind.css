@@ -17,6 +17,11 @@
   .btn-icon {
     @apply text-gray-700 bg-transparent inline-block p-1 m-2 rounded-md hover:bg-gray-100 transition-all
   }
+
+  .editor-content{
+    @apply whitespace-nowrap
+  }
+
   .editor-title {
     @apply text-5xl text-gray-900 font-semibold
   }
@@ -33,7 +38,7 @@
   }
 
   .editor-text {
-    @apply text-lg text-gray-700 font-normal h-7 inline;
+    @apply text-lg text-gray-700 font-normal h-7 inline-block;
   }
 
   .editor-row {

@@ -1,18 +1,15 @@
-import { v4 as uuid } from 'uuid';
-
+export type T_State = "new"|"change"|"delete"|"static"
 export interface textLinkNode{
     type: string;
     id:string;
     content:string;
-    state:string;
+    state:T_State;
     marks:Array<string>;
 }
-
 export type textLinkNodeList = Array<textLinkNode>
 interface textLinkNodeListFunc{
     (textLinkNodeList:textLinkNodeList):void
 }
-
 //初始化Dom链表
 export const textNodeLinkList:textLinkNodeListFunc = (textLinkNodeList)=>{
     let mountElement = document.querySelector('.content>div') as Element
@@ -22,55 +19,53 @@ export const textNodeLinkList:textLinkNodeListFunc = (textLinkNodeList)=>{
      mountElement.appendChild(element)
     })
 }
-
 interface textNodeLinkListChangeFunc{
     (textLinkNodeList:textLinkNodeList):void
 }
-
-export const textNodeLinkListChange:textNodeLinkListChangeFunc = (textLinkNodeList)=>{
+export const textNodeLinkListVDomToDom:textNodeLinkListChangeFunc = (textLinkNodeList)=>{
     let beforeElement:HTMLElement|null = null
     textLinkNodeList.map((textLinkNode,index)=>{
         switch (textLinkNode.state){
             case "new":
             beforeElement = new_generateTextNodeDom(index,textLinkNode,beforeElement as HTMLElement)
-            return
+            return true
             case "change":
             beforeElement = change_generateTextNodeDom(textLinkNode,beforeElement as HTMLElement) 
-            return
+            return true
             case "delete":
             delete_generateTextNodeDom(textLinkNode)   
-            return 
+            return true
             case "static":
             beforeElement = static_generateTextNodeDom(textLinkNode,beforeElement as HTMLElement)
-            return
+            return true
+            default:
+            return false
         }
     })
 
 }
 //------------------------------------------
-interface new_generateTextNodeDom{
+interface I_new_generateTextNodeDom{
     (index:number,textLinkNode:textLinkNode,beforeElement:HTMLElement):HTMLElement
 }
-export const new_generateTextNodeDom:new_generateTextNodeDom = (index,textLinkNode,beforeElement)=>{
+export const new_generateTextNodeDom:I_new_generateTextNodeDom = (index,textLinkNode,beforeElement)=>{
     let mountElement = document.querySelector('.content>div') as Element
     const element = createLinkNodeDom(textLinkNode)
     
     if(index===0){  
-        console.log(beforeElement)
         insertBefore(element,mountElement.firstElementChild as Element)
         textLinkNode.state = "static"
     }
     if(index>0){
-        console.log(beforeElement)
         insertAfter(element,beforeElement) 
         textLinkNode.state = "static"
     }
     return document.getElementById(textLinkNode.id) as HTMLElement
 }
-interface change_generateTextNodeDom{
+interface I_change_generateTextNodeDom{
     (textLinkNode:textLinkNode,beforeElement:Element):HTMLElement
 }
-export const change_generateTextNodeDom:change_generateTextNodeDom = (textLinkNode,beforeElement)=>{
+export const change_generateTextNodeDom:I_change_generateTextNodeDom = (textLinkNode,beforeElement)=>{
     let mountElement = document.querySelector('.content>div') as Element
     const element = createLinkNodeDom(textLinkNode)
     const beforeChangeElement = document.getElementById(textLinkNode.id)
@@ -78,17 +73,17 @@ export const change_generateTextNodeDom:change_generateTextNodeDom = (textLinkNo
     textLinkNode.state = "static"
     return document.getElementById(textLinkNode.id) as HTMLElement
 }
-interface static_generateTextNodeDom{
+interface I_static_generateTextNodeDom{
     (textLinkNode:textLinkNode,beforeElement:Element|null):HTMLElement
 }
-export const static_generateTextNodeDom:static_generateTextNodeDom = (textLinkNode,beforeElement)=>{
+export const static_generateTextNodeDom:I_static_generateTextNodeDom = (textLinkNode,beforeElement)=>{
     const beforeChangeElement = document.getElementById(textLinkNode.id) as HTMLElement
     return beforeChangeElement as HTMLElement
 }
-interface delete_generateTextNodeDom{
+interface I_delete_generateTextNodeDom{
     (textLinkNode:textLinkNode):void
 }
-export const delete_generateTextNodeDom:delete_generateTextNodeDom = (textLinkNode)=>{
+export const delete_generateTextNodeDom:I_delete_generateTextNodeDom = (textLinkNode)=>{
     let mountElement = document.querySelector('.content>div') as Element
     const element = document.getElementById(textLinkNode.id)
     console.log(textLinkNode.id)
@@ -96,11 +91,11 @@ export const delete_generateTextNodeDom:delete_generateTextNodeDom = (textLinkNo
 }
 //-------------------------------------------
 
-interface createLinkNodeDomFunc{
+interface I_createLinkNodeDomFunc{
     (LinkNode:textLinkNode):HTMLElement
 }
 //根据虚拟Dom创建真实Dom
-export const createLinkNodeDom:createLinkNodeDomFunc =(LinkNode)=>{
+export const createLinkNodeDom:I_createLinkNodeDomFunc =(LinkNode)=>{
   const element = document.createElement("p")
   element.id = LinkNode.id
   element.classList.add(LinkNode.type)
@@ -111,12 +106,9 @@ export const createLinkNodeDom:createLinkNodeDomFunc =(LinkNode)=>{
   element.innerText = LinkNode.content 
   return element
 }
-
-
 interface textLinkNodeDomReplaceFunc{
     (mountElement:Element,LinkNode:textLinkNode):void
 }
-
 //Dom节点的替换
 export const textLinkNodeDomReplace:textLinkNodeDomReplaceFunc=(mountElement,LinkNode)=>{
     const nexNode = createLinkNodeDom(LinkNode) 
@@ -126,13 +118,6 @@ export const textLinkNodeDomReplace:textLinkNodeDomReplaceFunc=(mountElement,Lin
     }
     return
 }
-
-
-
-
-
-
-
 export interface selectedNodeChangeData{
     nodes:Array<textLinkNode>,
     accuratePosition:{start:number,end:number}
@@ -200,25 +185,21 @@ export const textNodeLinkListRerender2:textNodeLinkListRerenderFunc2=(mountEleme
     return
 
 }
-interface insertText{
+interface I_insertText{
     (node:textLinkNode):void
 }
-export const insertText:insertText=(node)=>{
+export const insertText:I_insertText=(node)=>{
     document.addEventListener("keyup",(e)=>{
         node.content+=e.key
     })
     console.log(node.content)
     return 
 }
-
-
-
-interface insertAfter{
+interface I_insertAfter{
     (newElement:HTMLElement, targetElement:Element):void
 }
 //在targetElement之后插入 新节点newElement
-export const insertAfter:insertAfter =(newElement, targetElement)=>{
-    console.log(targetElement)
+export const insertAfter:I_insertAfter =(newElement, targetElement)=>{
     let mountElement = document.querySelector('.content>div') as Element
     if(!mountElement){
         return
@@ -232,10 +213,10 @@ export const insertAfter:insertAfter =(newElement, targetElement)=>{
         mountElement.insertBefore(newElement,targetElement.nextSibling);
     }
 }
-interface insertBefore{
+interface I_insertBefore{
     (newElement:HTMLElement, targetElement:Element):void
 }
-export const insertBefore:insertBefore =(newElement, targetElement)=>{
+export const insertBefore:I_insertBefore =(newElement, targetElement)=>{
     let mountElement = document.querySelector('.content>div') as Element
     if(!mountElement){
         return
