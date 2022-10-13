@@ -133,7 +133,6 @@ export const createLinkNodeDom: I_createLinkNodeDomFunc = (LinkNode) => {
     element.classList.add(...LinkNode.marks);
   }
   element.innerText = LinkNode.content;
-  console.log(element);
   return element;
 };
 interface textLinkNodeDomReplaceFunc {
@@ -250,8 +249,6 @@ export const insertAfter: I_insertAfter = (newElement, targetElement) => {
   if (mountElement.lastChild == targetElement) {
     mountElement.appendChild(newElement);
   } else {
-    // console.log(targetElement.nextSibling)
-    // console.log(mountElement)
     mountElement.insertBefore(newElement, targetElement.nextSibling);
   }
 };

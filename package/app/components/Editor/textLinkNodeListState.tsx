@@ -68,9 +68,9 @@ export const changeTextState = (
   }
   //获取虚拟Dom
   //@ts-ignore
-  const startNodeId = startNodeDom?.parentNode?.id;
+  let startNodeId = startNodeDom?.parentNode?.id;
   //@ts-ignore
-  const endNodeId = endNodeDom?.parentNode?.id;
+  let endNodeId = endNodeDom?.parentNode?.id;
   const row = [startNodeId, endNodeId];
   const findNodes = textsState.filter((node) => row.indexOf(node.id) !== -1);
   if (!findNodes) {
@@ -91,9 +91,14 @@ export const changeTextState = (
   }
   const startNode = { ...findNodes[0] };
   const endNode = { ...findNodes[findNodes.length - 1] };
-  const startNodeContent = startNode.content.slice(0, start);
+  let afterStart = start,afterEnd = end;
+  if(startNode.id!==startNodeId){
+    afterEnd = start 
+    afterStart = end
+  }
+  const startNodeContent = startNode.content.slice(0, afterStart);
   const endNodeContent = endNode.content.slice(
-    end,
+    afterEnd,
     findNodes[findNodes.length - 1].content.length
   );
   startNode.content = startNodeContent;
@@ -128,7 +133,6 @@ export const changeTextState = (
           break;
         default:
           enterSpecailCharacter(
-            selectedNodes,
             startNode,
             endNode,
             textsState,
@@ -168,7 +172,6 @@ const enterSingleCharacter = (
   }
 };
 const enterSpecailCharacter = (
-  selectedNodes: any[],
   startNode: textLinkNode,
   endNode: textLinkNode,
   textsState: Array<textLinkNode>,
@@ -177,26 +180,52 @@ const enterSpecailCharacter = (
 ) => {
   switch (args[0]) {
     case "Enter":
-      let newNode = {
-        label: "br",
-        type: "br",
-        id: "linknode-" + uuid(),
-        marks: [],
-        state: "new",
-        content: "",
-      } as textLinkNode;
-      if (endNode.content.length !== 0) {
-        textsState.splice(startNodeIndex, 1, startNode, newNode, endNode);
-      } else {
-        textsState.splice(startNodeIndex, 1, startNode, newNode);
-      }
+      enterTextState(startNode,endNode,textsState,startNodeIndex)
       break;
     case "Backspace":
+      backspaceTextState(startNode,endNode,textsState,startNodeIndex)
       break;
     default:
       break;
   }
 };
+
+
+const enterTextState=(
+  startNode: textLinkNode,
+  endNode: textLinkNode,
+  textsState: Array<textLinkNode>,
+  startNodeIndex: number,
+)=>{
+  let newNode = {
+    label: "br",
+    type: "br",
+    id: "linknode-" + uuid(),
+    marks: [],
+    state: "new",
+    content: "",
+  } as textLinkNode;
+  if (endNode.content.length !== 0) {
+    textsState.splice(startNodeIndex, 1, startNode, newNode, endNode);
+  } else {
+    textsState.splice(startNodeIndex, 1, startNode, newNode);
+  }
+}
+
+const backspaceTextState=(
+  startNode: textLinkNode,
+  endNode: textLinkNode,
+  textsState: Array<textLinkNode>,
+  startNodeIndex: number,
+)=>{
+  if (endNode.content.length !== 0) {
+    textsState.splice(startNodeIndex, 1, startNode,endNode);
+  } else {
+    textsState.splice(startNodeIndex, 1, startNode);
+  }
+}
+
+
 export const initTextState = () => {
   console.log("Create");
   const contentDom = document.querySelector(".content");

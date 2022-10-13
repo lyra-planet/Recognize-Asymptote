@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { changeTextState, initTextState } from "./textLinkNodeListState";
-import { getCursor } from "../../hook/getCursor";
+import { getCursor, resetCursor, } from "../../hook/getCursor";
 interface selection {
   end: number;
   start: number;
@@ -41,19 +41,27 @@ const EditorController = () => {
             };
             break;
           default:
-            if (selection.current.startNodeDom?.parentElement) {
-              const nextDom = document.querySelector(
-                `#${selection.current.startNodeDom.parentElement.id}`
-              )?.nextElementSibling?.nextElementSibling as Element;
-              selection.current = {
-                startNodeDom: nextDom.childNodes[0],
-                endNodeDom: nextDom.childNodes[0],
-                start: 0,
-                end: 0,
-              };
+            switch(e.key){
+              case "Enter":
+                if (selection.current.startNodeDom?.parentElement) {
+                  const nextDom = document.querySelector(
+                    `#${selection.current.startNodeDom.parentElement.id}`
+                  )?.nextElementSibling?.nextElementSibling as Element;
+                  selection.current = {
+                    startNodeDom: nextDom.childNodes[0],
+                    endNodeDom: nextDom.childNodes[0],
+                    start: 0,
+                    end: 0,
+                  };
+                }
+                break
+                case "Backspace":
+                  break
             }
+
         }
       }
+      resetCursor()
     });
   }, []);
 
