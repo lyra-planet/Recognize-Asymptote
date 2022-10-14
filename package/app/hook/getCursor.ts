@@ -17,9 +17,9 @@ export const getCursor = () => {
   //获取鼠标位置
   const end = sel.focusOffset;
   const start = sel.anchorOffset;
-  const startNodeDom = sel.anchorNode;
-  const endNodeDom = sel.focusNode;
-  console.log(sel)
+  const startNodeDom = sel.anchorNode?.parentElement;
+  const endNodeDom = sel.focusNode?.parentElement;
+  
   return {
     end,
     start,

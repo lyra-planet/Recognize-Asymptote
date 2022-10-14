@@ -1,11 +1,19 @@
+import { v4 as uuid } from "uuid";
 export type T_State = "new" | "change" | "delete" | "static";
-export interface textLinkNode {
+export type textLinkNode = {
   label: string;
   type: string;
   id: string;
   content: string;
   state: T_State;
   marks: Array<string>;
+  rowId: string;
+}
+export type T_RowState = "new" | "change" | "delete" | "static";
+export type textLinkNodeRow = {
+  children:Array<textLinkNode>;
+  rowId: string;
+  state:T_RowState;
 }
 export type textLinkNodeList = Array<textLinkNode>;
 interface textLinkNodeListFunc {
@@ -14,41 +22,90 @@ interface textLinkNodeListFunc {
 //初始化Dom链表
 export const textNodeLinkList: textLinkNodeListFunc = (textLinkNodeList) => {
   let mountElement = document.querySelector(".content>div") as Element;
-  textLinkNodeList.map((textLinkNode) => {
+  textLinkNodeList.map((textLinkNode,index) => {
     const element = createLinkNodeDom(textLinkNode);
     textLinkNode.state = "static";
     mountElement.appendChild(element);
   });
 };
+interface textLinkNodeListFunc2 {
+  (textLinkNodeRowList: Array<textLinkNodeRow>): void;
+}
+export const textNodeLinkList2: textLinkNodeListFunc2 = (textLinkNodeRowList) => {
+  let mountElement = document.querySelector(".editor-content") as Element;
+  textLinkNodeRowList.forEach((textLinkNodeRow) => {
+    const rowElement:Element = createLinkNodeRowDom(textLinkNodeRow)
+    mountElement.appendChild(rowElement);
+    textLinkNodeRow.children.forEach((textLinkNode)=>{
+      const element = createLinkNodeDom(textLinkNode)
+      rowElement.appendChild(element)
+      textLinkNode.state = "static"
+    })
+    textLinkNodeRow.state = "static" 
+  });
+};
 interface textNodeLinkListChangeFunc {
-  (textLinkNodeList: textLinkNodeList): void;
+  (textLinkNodeRow: textLinkNodeRow): void;
 }
 export const textNodeLinkListVDomToDom: textNodeLinkListChangeFunc = (
-  textLinkNodeList
+  textLinkNodeRow
 ) => {
   let beforeElement: HTMLElement | null = null;
-  textLinkNodeList.map((textLinkNode, index) => {
+  textLinkNodeRow.children.map((textLinkNode, index) => {
     switch (textLinkNode.state) {
       case "new":
         beforeElement = new_generateTextNodeDom(
           index,
           textLinkNode,
+          textLinkNodeRow.rowId,
           beforeElement as HTMLElement
         );
         return true;
       case "change":
         beforeElement = change_generateTextNodeDom(
           textLinkNode,
-          beforeElement as HTMLElement
+          textLinkNodeRow.rowId,
         );
         return true;
       case "delete":
-        delete_generateTextNodeDom(textLinkNode);
+        delete_generateTextNodeDom(textLinkNode,textLinkNodeRow.rowId,);
         return true;
       case "static":
-        beforeElement = static_generateTextNodeDom(
-          textLinkNode,
+        beforeElement = static_generateTextNodeDom(textLinkNode);
+        return true;
+      default:
+        return false;
+    }
+  });
+};
+
+interface textNodeRowLinkListChangeFunc {
+  (textLinkNodeRowList: Array<textLinkNodeRow>): void;
+}
+export const textNodeRowLinkListVDomToDom: textNodeRowLinkListChangeFunc = (
+  textLinkNodeRowList
+) => {
+  let beforeElement: HTMLElement | null = null;
+  textLinkNodeRowList.map((textLinkNodeRow, index) => {
+    switch (textLinkNodeRow.state) {
+      case "new":
+        beforeElement = new_generateTextNodeRowDom(
+          index,
+          textLinkNodeRow,
           beforeElement as HTMLElement
+        );
+        return true;
+      case "change":
+        beforeElement = change_generateTextNodeRowDom(
+          textLinkNodeRow
+        );
+        return true;
+      case "delete":
+        delete_generateTextNodeRowDom(textLinkNodeRow);
+        return true;
+      case "static":
+        beforeElement = static_generateTextNodeRowDom(
+          textLinkNodeRow
         );
         return true;
       default:
@@ -57,51 +114,106 @@ export const textNodeLinkListVDomToDom: textNodeLinkListChangeFunc = (
   });
 };
 //------------------------------------------
+interface I_new_generateTextNodeRowDom {
+  (
+    index: number,
+    textLinkNodeRow: textLinkNodeRow,
+    beforeElement: HTMLElement
+  ): HTMLElement;
+}
+export const new_generateTextNodeRowDom: I_new_generateTextNodeRowDom = (
+  index,
+  textLinkNodeRow,
+  beforeElement
+) => {
+  let mountElement = document.querySelector(".editor-content") as Element;
+  const element = createLinkNodeRowDom(textLinkNodeRow);
+  if (index === 0) {
+    insertBeforeRow(element, mountElement.firstElementChild as Element);
+  }
+  if (index > 0) {
+    insertAfterRow(element, beforeElement); 
+  }
+  textNodeLinkListVDomToDom(textLinkNodeRow)
+  textLinkNodeRow.state = "static";
+  return document.getElementById(textLinkNodeRow.rowId) as HTMLElement;
+};
+interface I_change_generateTextNodeRowDom {
+  ( textLinkNodeRow: textLinkNodeRow): HTMLElement;
+}
+export const change_generateTextNodeRowDom: I_change_generateTextNodeRowDom = (
+  textLinkNodeRow
+) => {
+  textNodeLinkListVDomToDom(textLinkNodeRow)
+  textLinkNodeRow.state = "static";
+  return document.getElementById(textLinkNodeRow.rowId) as HTMLElement;
+};
+interface I_static_generateTextNodeRowDom {
+  (textLinkNodeRow: textLinkNodeRow): HTMLElement;
+}
+export const static_generateTextNodeRowDom: I_static_generateTextNodeRowDom = (
+  textLinkNodeRow,
+) => {
+  return document.getElementById(textLinkNodeRow.rowId) as HTMLElement;
+};
+interface I_delete_generateTextNodeRowDom {
+  (textLinkNodeRow: textLinkNodeRow): void;
+}
+export const delete_generateTextNodeRowDom: I_delete_generateTextNodeRowDom = (
+  textLinkNodeRow
+) => {
+  let mountElement = document.querySelector(".editor-content") as Element;
+  const element = document.getElementById(textLinkNodeRow.rowId);
+  mountElement.removeChild(element as HTMLElement);
+};
+//-------------------------------------------
+
+//------------------------------------------
 interface I_new_generateTextNodeDom {
   (
     index: number,
     textLinkNode: textLinkNode,
+    mountRowElementId:string,
     beforeElement: HTMLElement
   ): HTMLElement;
 }
 export const new_generateTextNodeDom: I_new_generateTextNodeDom = (
   index,
   textLinkNode,
+  mountRowElementId,
   beforeElement
 ) => {
-  let mountElement = document.querySelector(".content>div") as Element;
+  let mountElement = document.querySelector(`#${mountRowElementId}`) as Element;
   const element = createLinkNodeDom(textLinkNode);
 
   if (index === 0) {
-    insertBefore(element, mountElement.firstElementChild as Element);
+    insertBefore(element, mountElement.firstElementChild as Element,mountRowElementId);
     textLinkNode.state = "static";
   }
   if (index > 0) {
-    insertAfter(element, beforeElement);
+    insertAfter(element, beforeElement,mountRowElementId);
     textLinkNode.state = "static";
   }
   return document.getElementById(textLinkNode.id) as HTMLElement;
 };
 interface I_change_generateTextNodeDom {
-  (textLinkNode: textLinkNode, beforeElement: Element): HTMLElement;
+  (textLinkNode: textLinkNode,mountRowElementId:string): HTMLElement;
 }
 export const change_generateTextNodeDom: I_change_generateTextNodeDom = (
-  textLinkNode,
-  beforeElement
+  textLinkNode, 
+  mountRowElementId,
 ) => {
-  let mountElement = document.querySelector(".content>div") as Element;
   const element = createLinkNodeDom(textLinkNode);
   const beforeChangeElement = document.getElementById(textLinkNode.id);
-  mountElement.replaceChild(element, beforeChangeElement as HTMLElement);
+  beforeChangeElement?.replaceWith(element)
   textLinkNode.state = "static";
   return document.getElementById(textLinkNode.id) as HTMLElement;
 };
 interface I_static_generateTextNodeDom {
-  (textLinkNode: textLinkNode, beforeElement: Element | null): HTMLElement;
+  (textLinkNode: textLinkNode): HTMLElement;
 }
 export const static_generateTextNodeDom: I_static_generateTextNodeDom = (
   textLinkNode,
-  beforeElement
 ) => {
   const beforeChangeElement = document.getElementById(
     textLinkNode.id
@@ -109,17 +221,17 @@ export const static_generateTextNodeDom: I_static_generateTextNodeDom = (
   return beforeChangeElement as HTMLElement;
 };
 interface I_delete_generateTextNodeDom {
-  (textLinkNode: textLinkNode): void;
+  (textLinkNode: textLinkNode, mountRowElementId:string): void;
 }
 export const delete_generateTextNodeDom: I_delete_generateTextNodeDom = (
-  textLinkNode
+  textLinkNode,
+  mountRowElementId
 ) => {
-  let mountElement = document.querySelector(".content>div") as Element;
+  let mountElement = document.querySelector(`#${mountRowElementId}`) as Element;
   const element = document.getElementById(textLinkNode.id);
   mountElement.removeChild(element as HTMLElement);
 };
 //-------------------------------------------
-
 interface I_createLinkNodeDomFunc {
   (LinkNode: textLinkNode): HTMLElement;
 }
@@ -129,120 +241,59 @@ export const createLinkNodeDom: I_createLinkNodeDomFunc = (LinkNode) => {
   element.id = LinkNode.id;
   element.classList.add(LinkNode.type);
   element.setAttribute("type", LinkNode.type);
+  element.setAttribute("rowId",LinkNode.rowId);
   if (LinkNode.marks.length != 0) {
     element.classList.add(...LinkNode.marks);
   }
   element.innerText = LinkNode.content;
   return element;
 };
-interface textLinkNodeDomReplaceFunc {
-  (mountElement: Element, LinkNode: textLinkNode): void;
+interface I_createLinkNodeRowDomFunc {
+  (LinkNodeRow: textLinkNodeRow): HTMLElement;
 }
-//Dom节点的替换
-export const textLinkNodeDomReplace: textLinkNodeDomReplaceFunc = (
-  mountElement,
-  LinkNode
-) => {
-  const nexNode = createLinkNodeDom(LinkNode);
-  const preNode = document.getElementById(LinkNode.id);
-  if (LinkNode.id && nexNode && preNode) {
-    mountElement.replaceChild(nexNode, preNode);
-  }
-  return;
+export const createLinkNodeRowDom: I_createLinkNodeRowDomFunc = (LinkNodeRow) => {
+    const element = document.createElement('div');
+    element.id = LinkNodeRow.rowId;
+    element.classList.add("editor-row");
+    return element;
 };
-export interface selectedNodeChangeData {
-  nodes: Array<textLinkNode>;
-  accuratePosition: { start: number; end: number };
-}
-//将选中的Dom变更
-interface textNodeLinkListRerenderFunc2 {
-  (
-    mountElement: Element,
-    nodeChangeData: selectedNodeChangeData,
-    newNode: textLinkNode
-  ): void;
-}
-export const textNodeLinkListRerender2: textNodeLinkListRerenderFunc2 = (
-  mountElement,
-  nodeChangeData,
-  newNode
-) => {
-  const newNodeDom = createLinkNodeDom(newNode);
-  const nodes = nodeChangeData.nodes;
-  const { start, end } = nodeChangeData.accuratePosition;
-  if (nodes[0] === undefined) {
-    console.log(nodes);
-    return;
-  }
-
-  //未选中元素直接返回
-  if (nodes.length === 0) {
-    return;
-  }
-  //在单一Dom节点中插入
-  if (nodes.length === 1 && start === end) {
-    insertText(nodes[0]);
-    return;
-  }
-  //对多个Dom节点的操作
-
-  //中间节点的移除
-  if (nodes.length !== 1) {
-    nodes.map((node, index) => {
-      if (index !== 0 && index !== nodes.length - 1) {
-        const willRemoveNode = document.getElementById(node.id);
-        if (willRemoveNode) {
-          mountElement.removeChild(willRemoveNode);
-        }
-      }
-    });
-  }
-  //首尾节点content的截取
-
-  const startNode = nodes[0];
-  const endNode = nodes[nodes.length - 1];
-  const startNodeContent = startNode.content.slice(0, start);
-  const endNodeContent = endNode.content.slice(
-    end,
-    nodes[nodes.length - 1].content.length
-  );
-  startNode.content = startNodeContent;
-  endNode.content = endNodeContent;
-  textLinkNodeDomReplace(mountElement, startNode);
-  textLinkNodeDomReplace(mountElement, endNode);
-  const startNodeDom = document.getElementById(startNode.id);
-  const endNodeDom = document.getElementById(endNode.id);
-  if (!startNodeDom || !endNodeDom) {
-    return;
-  }
-  //Dom节点的插入
-  insertAfter(newNodeDom, startNodeDom);
-  //-----------
-  //清除空的Dom节点
-  if (start === 0) {
-    mountElement.removeChild(startNodeDom);
-  }
-  if (end === endNodeContent.length) {
-    mountElement.removeChild(endNodeDom);
-  }
-  return;
-};
-interface I_insertText {
-  (node: textLinkNode): void;
-}
-export const insertText: I_insertText = (node) => {
-  document.addEventListener("keyup", (e) => {
-    node.content += e.key;
-  });
-  console.log(node.content);
-  return;
-};
-interface I_insertAfter {
+//------------------------------------------
+interface I_insertAfterRow {
   (newElement: HTMLElement, targetElement: Element): void;
 }
 //在targetElement之后插入 新节点newElement
-export const insertAfter: I_insertAfter = (newElement, targetElement) => {
-  let mountElement = document.querySelector(".content>div") as Element;
+export const insertAfterRow: I_insertAfterRow = (newElement, targetElement) => {
+  let mountElement = document.querySelector(".editor-content") as Element;
+  if (!mountElement) {
+    return;
+  }
+  if (mountElement.lastChild == targetElement) {
+    mountElement.appendChild(newElement);
+  } else {
+    console.log()
+    mountElement.insertBefore(newElement, targetElement.nextSibling);
+  }
+};
+interface I_insertBeforeRow {
+  (newElement: HTMLElement, targetElement: Element): void;
+}
+export const insertBeforeRow: I_insertBeforeRow = (newElement, targetElement) => {
+  let mountElement = document.querySelector(".editor-content") as Element;
+  if (!mountElement) {
+    return;
+  }
+  if (!targetElement) {
+    mountElement.appendChild(newElement);
+  } else {
+    mountElement.insertBefore(newElement, targetElement);
+  }
+};
+//------------------------------------------
+interface I_insertAfter {
+  (newElement: HTMLElement, targetElement: Element,mountRowElementId:string): void;
+}
+export const insertAfter: I_insertAfter = (newElement, targetElement,mountRowElementId) => {
+  let mountElement = document.querySelector(`#${mountRowElementId}`) as Element;
   if (!mountElement) {
     return;
   }
@@ -253,10 +304,10 @@ export const insertAfter: I_insertAfter = (newElement, targetElement) => {
   }
 };
 interface I_insertBefore {
-  (newElement: HTMLElement, targetElement: Element): void;
+  (newElement: HTMLElement, targetElement: Element,mountRowElementId:string): void;
 }
-export const insertBefore: I_insertBefore = (newElement, targetElement) => {
-  let mountElement = document.querySelector(".content>div") as Element;
+export const insertBefore: I_insertBefore = (newElement, targetElement,mountRowElementId) => {
+  let mountElement = document.querySelector(`#${mountRowElementId}`) as Element;
   if (!mountElement) {
     return;
   }
@@ -266,3 +317,4 @@ export const insertBefore: I_insertBefore = (newElement, targetElement) => {
     mountElement.insertBefore(newElement, targetElement);
   }
 };
+//------------------------------------------

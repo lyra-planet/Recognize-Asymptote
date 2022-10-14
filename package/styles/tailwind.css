@@ -38,7 +38,7 @@
   }
 
   .editor-text {
-    @apply text-lg text-gray-700 font-normal h-7 inline-block;
+    @apply text-lg text-gray-700 font-normal h-7 inline-block ;
   }
 
   .editor-row {
