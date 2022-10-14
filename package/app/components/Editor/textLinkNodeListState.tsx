@@ -225,6 +225,21 @@ export const changeTextState = (
         if (!rowNode) {
           return;
         }
+        
+        if(rowNode.state==='delete'){
+          if (searchRowId === text.rowId && beforRow) {
+            const moveTextNode = rowNode.children.filter(
+              (el) => el.id === text.id
+            ) as textLinkNode[];
+            moveTextNode[0].state = "delete";
+            text.rowId = beforRow.rowId;
+            const newText = { ...text };
+            newText.state = "new";
+            console.log(beforRow)
+            beforRow?.children.push(newText);
+            beforRow.state='change'
+        }
+        }else{
           rowNode.state = "change";
           text.state = "change";
           let textNode = rowNode.children.find(
@@ -232,42 +247,52 @@ export const changeTextState = (
           ) as textLinkNode;
           rowNode.children[rowNode.children.indexOf(textNode)] = text;
           beforRow = rowNode;
+        }
         break;
-      case "delete":
-        
+      case "delete":       
         rowNode = textsRowState.find((el) => el.rowId === text.rowId);
-        
         if (!rowNode) {
           return;
         }
-        
-        if (startNode.rowId === endNode.rowId) {
-          const deleteTextNode = rowNode.children.filter(
-            (el) => el.id === text.id
-          ) as textLinkNode[];    
-          deleteTextNode[0].state = "delete";
-          rowNode.state = "change";
-        } else {
-          if (startNode.rowId === text.rowId || endNode.rowId === text.rowId) {
+        if(text.label==='br'){
+          if(!beforRow){
+            return
+          }
+          rowNode.state = "delete"
+          searchRowId = text.rowId
+        }else{
+          if (startNode.rowId === endNode.rowId) {
             const deleteTextNode = rowNode.children.filter(
               (el) => el.id === text.id
-            ) as textLinkNode[];
-            if(endNode.rowId===text.rowId){
-            rowNode.state='delete'
-            }else{
-              deleteTextNode[0].state = "delete";
-              rowNode.state = "change";
-              searchRowId = endNode.rowId
-            }
+            ) as textLinkNode[];    
+            deleteTextNode[0].state = "delete";
+            rowNode.state = "change";
           } else {
-            rowNode.state = "delete";
+            if (startNode.rowId === text.rowId || endNode.rowId === text.rowId) {
+              const deleteTextNode = rowNode.children.filter(
+                (el) => el.id === text.id
+              ) as textLinkNode[];
+              if(endNode.rowId===text.rowId){
+              rowNode.state='delete'
+              }else{
+                deleteTextNode[0].state = "delete";
+                rowNode.state = "change";
+                searchRowId = endNode.rowId
+              }
+            } else {
+              rowNode.state = "delete";
+            }
           }
         }
+
         break;
       case "static":
         rowNode = textsRowState.find((el) => el.rowId === text.rowId);
         if (!rowNode) {
           return;
+        }
+        if(text.type==='br'){
+          break
         }
         if (searchRowId === text.rowId && beforRow) {
           const moveTextNode = rowNode.children.filter(
@@ -277,10 +302,12 @@ export const changeTextState = (
           text.rowId = beforRow.rowId;
           const newText = { ...text };
           newText.state = "new";
+          console.log(beforRow)
           beforRow?.children.push(newText);
-          rowNode.state = "change";
         } else {
-          beforRow = rowNode;
+          if(rowNode.rowId!==beforRow?.rowId){
+            beforRow = rowNode;
+          }
         }
         break;
       default:
@@ -394,13 +421,23 @@ const backspaceTextState = (
   startNodeIndex: number
 ) => {
   if (selectedNodes.length == 1) {
+    if(afterStart===0){
+      const index = textsState.findIndex(el=>el.id===startNode.id)
+      console.log(index)
+      console.log(textsState[index-1])
+      if(textsState[index-1].type==='br'){
+        textsState[index-1].state='delete'
+      }
+    }
     let startNodeContent = "";
     if (afterStart !== afterEnd) {
       startNodeContent = startNode.content.slice(0, afterStart);
     } else {
       startNodeContent = startNode.content.slice(0, afterStart - 1);
     }
+    
     startNode.content = startNodeContent + endNode.content;
+    
     textsState.splice(startNodeIndex, 1, startNode);
   } else if (selectedNodes.length > 1) {
     if (endNode.content.length !== 0) {
@@ -410,6 +447,7 @@ const backspaceTextState = (
     }
   }
 };
+
 export const initTextLinkNodeRow = (textsState: Array<textLinkNode>) => {
   let nowTextNodeRow: textLinkNodeRow | null = null;
   textsState.forEach((textLinkNode, index) => {

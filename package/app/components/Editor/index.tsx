@@ -23,7 +23,6 @@ const EditorController = () => {
     document.addEventListener("selectionchange", (e) => {});
     document.addEventListener("mouseup", () => {
       selection.current = getCursor() as selection;
-      console.log(selection.current)
       if (controllState === "insert" || controllState === "change") {
         changeTextState(selection.current, controllState);
       }
@@ -42,14 +41,17 @@ const EditorController = () => {
           default:
             switch (e.key) {
               case "Enter":
-                if(!selection.current.startNodeDom){
-                  return
+                if (!selection.current.startNodeDom) {
+                  return;
                 }
-                const currentRowDom = document.querySelector(`#${selection.current.startNodeDom.attributes[3].value}`)
-                if(currentRowDom){
-                  if(currentRowDom.nextElementSibling){
+                const currentRowDom = document.querySelector(
+                  `#${selection.current.startNodeDom.attributes[3].value}`
+                );
+                if (currentRowDom) {
+                  if (currentRowDom.nextElementSibling) {
                     selection.current = {
-                      startNodeDom: currentRowDom.nextElementSibling.children[1],
+                      startNodeDom:
+                        currentRowDom.nextElementSibling.children[1],
                       endNodeDom: currentRowDom.nextElementSibling.children[1],
                       start: 0,
                       end: 0,
@@ -57,48 +59,57 @@ const EditorController = () => {
                   }
                 }
                 break;
-              case "Backspace": 
-                
+              case "Backspace":
                 selection.current = {
                   ...selection.current,
                   start: selection.current.start - 1,
                   end: selection.current.start - 1,
                 };
-                if(!selection.current.startNodeDom){
-                  return
+                if (!selection.current.startNodeDom) {
+                  return;
                 }
-                if(selection.current.start===0){
-                  const currentDom = document.querySelector(`#${selection.current.startNodeDom.id}`)
-                  const previousDom = currentDom?.previousElementSibling
-                  if(previousDom?.tagName!=='P'){
-                    const currentRowDom = document.querySelector(`#${selection.current.startNodeDom.attributes[3].value}`)
-                    if(currentRowDom){
-                      if(currentRowDom.previousElementSibling){
-                        const lastChildDom = currentRowDom.previousElementSibling.lastElementChild
-                        if(!lastChildDom?.textContent){
-                          return
+                if (selection.current.start <= 0) {
+                  const currentDom = document.querySelector(
+                    `#${selection.current.startNodeDom.id}`
+                  );
+                  const previousDom = currentDom?.previousElementSibling;
+                  if (!previousDom) {
+                    return;
+                  }
+                  if (
+                    previousDom?.tagName !== "P" &&
+                    selection.current.start < 0
+                  ) {
+                    const currentRowDom = document.querySelector(
+                      `#${selection.current.startNodeDom.attributes[3].value}`
+                    );
+                    if (currentRowDom) {
+                      if (currentRowDom.previousElementSibling) {
+                        const lastChildDom =
+                          currentRowDom.previousElementSibling.lastElementChild;
+                        if (!lastChildDom?.textContent) {
+                          return;
                         }
                         selection.current = {
-                          startNodeDom: lastChildDom ,
+                          startNodeDom: lastChildDom,
                           endNodeDom: lastChildDom,
                           start: lastChildDom?.textContent?.length,
-                          end: lastChildDom?.textContent?.length
+                          end: lastChildDom?.textContent?.length,
                         };
                       }
-
                     }
-                  }else{
-                    if(!previousDom.textContent?.length){
-                      return
+                  } else {
+                    if (!previousDom.textContent?.length) {
+                      return;
                     }
                     selection.current = {
-                      startNodeDom:previousDom,
-                      endNodeDom:previousDom,
+                      startNodeDom: previousDom,
+                      endNodeDom: previousDom,
                       start: previousDom.textContent?.length,
-                      end: previousDom.textContent?.length
+                      end: previousDom.textContent?.length,
                     };
                   }
-                }                
+                }
                 break;
             }
         }
